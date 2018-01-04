@@ -8,9 +8,9 @@
 
 #define F_CPU 1000000UL
 
-#define KEYPORT PORTC
-#define KEYDDR DDRC
-#define KEYPIN PINC
+#define KEYPORT PORTB
+#define KEYDDR DDRB
+#define KEYPIN PINB
 #define NOKEY 0xFF
 
 #include <avr/io.h>
@@ -18,7 +18,10 @@
 #include <stdlib.h>
 #include "hd44780.h"
 
-enum KEYS{DKEY, HASHKEY, ZEROKEY, STARKEY, CKEY, NINEKEY, EIGHTKEY, SEVENKEY, BKEY, SIXKEY, FIVEKEY, FOURKEY, AKEY, THREEKEY, TWOKEY, ONEKEY};
+enum KEYS{ONEKEY, FOURKEY, SEVENKEY, STARKEY,
+		  TWOKEY, FIVEKEY, EIGHTKEY, ZEROKEY,
+		  THREEKEY, SIXKEY, NINEKEY, HASHKEY,
+		  AKEY, BKEY, CKEY, DKEY};
 
 void keyInit();
 uint8_t keyScan();

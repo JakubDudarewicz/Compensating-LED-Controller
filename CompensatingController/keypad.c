@@ -14,19 +14,20 @@ void keyInit(){
 }
 
 uint8_t keyScan(){
-	for (int i = 0; i < 4; i++)
+	int i, j;
+	for (i = 0; i < 4; i++)
 	{
-		KEYPORT = _BV(i);
 		KEYDDR = _BV(i);
+		KEYPORT = _BV(i);
 		__asm("nop");
-		for (int j = 0; j < 4; j++)
+		for (j = 0; j < 4; j++)
 		{
 			if (KEYPIN & _BV(j + 4)){
 				_delay_ms(50);
 				while(KEYPIN & _BV(j + 4)){}
-				return (i * 4) + j;
 				KEYPORT = 0x00;
 				KEYDDR = 0x00;
+				return (i * 4) + j;
 			}
 		}
 	}

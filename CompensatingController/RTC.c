@@ -8,6 +8,7 @@
 #include "i2c.h"
 #include "RTC.h"
 #include <avr/io.h>
+#include <stdlib.h>
 
 void sendToAdress(uint8_t address, uint8_t data)
 {
@@ -98,6 +99,8 @@ uint8_t getTime(UNIT u)
 		return BCD2BIN(*data);
 		case LEAP:
 		return *data & _BV(RTCMTH_LPYR);
+		default:
+		return 0;
 	}
 }
 
