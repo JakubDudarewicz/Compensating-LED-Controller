@@ -23,6 +23,6 @@ typedef enum{
 	GREEN
 }SENSOR_COLOR;
 
-int sensorscan(SENSOR_COLOR color, int accuracy);
+int sensorScan(SENSOR_COLOR color, int accuracy);
 
 #endif /* SENSOR_H_ */

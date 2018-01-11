@@ -28,6 +28,8 @@ void setRGB();
 void toggleLight();
 void blinkLight();
 void displayTime();
+void displayLight();
+int input(int limit);
 
 int main(void)
 {
@@ -62,9 +64,10 @@ int main(void)
 	writeCustom(DOWNARROW, downArrow);
 	menuDirection = UP;
 	appendItem("RGB", &setRGB);
-	//appendItem("TOGGLE", &toggleLight);
-	//appendItem("BLINK", &blinkLight);
+	appendItem("TOGGLE", &toggleLight);
+	appendItem("BLINK", &blinkLight);
 	appendItem("TIME", &displayTime);
+	appendItem("SENSOR", &displayLight);
 	while(1){
 		buf = keyScan();
 		if (buf != NOKEY)
@@ -94,22 +97,20 @@ int main(void)
 }
 
 void setRGB(){
-	REDPWM = get8int("R:");
-	GREENPWM = get8int("G:");
-	BLUEPWM = get8int("B:");
+	REDPWM = getInt("R:", 255);
+	GREENPWM = getInt("G:", 255);
+	BLUEPWM = getInt("B:", 255);
 }
 
 void toggleLight(){
-	//DDRD ^= 0xFF;
+	DDRD ^= _BV(7) | _BV(6) | _BV(5);
 }
 
 void blinkLight(){
-	/*	
 	for (int i = 0; i < 10; i++){
-		DDRD ^= 0xFF;
+		DDRD ^= _BV(7) | _BV(6) | _BV(5);
 		_delay_ms(200);
 	}
-	*/
 }
 
 void displayTime(){
@@ -124,4 +125,26 @@ void displayTime(){
 	itoa(getTime(SECONDS), string, 10);
 	lcd_puts(string);
 	_delay_ms(2000);
+}
+
+void displayLight(){
+	int cbuf, rbuf, gbuf, bbuf;
+	char string[20];
+	cbuf = sensorScan(CLEAR, 2000);
+	rbuf = sensorScan(RED, 2000);
+	gbuf = sensorScan(GREEN, 2000);
+	bbuf = sensorScan(BLUE, 2000);
+	lcd_clrscr();
+	itoa(cbuf, string, 10);
+	lcd_puts(string);
+	lcd_putc(',');
+	itoa(rbuf, string, 10);
+	lcd_puts(string);
+	lcd_goto_xy(0, 1);
+	itoa(gbuf, string, 10);
+	lcd_puts(string);
+	lcd_putc(',');
+	itoa(bbuf, string, 10);
+	lcd_puts(string);
+	_delay_ms(1000);
 }

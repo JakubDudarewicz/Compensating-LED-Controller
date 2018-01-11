@@ -42,6 +42,10 @@ void prevMenu(){
 	if(selectedItem->prevItem != NULL) selectedItem = selectedItem->prevItem;
 }
 
+void parentMenu(){
+	if(selectedItem->parentItem != NULL) selectedItem = selectedItem->parentItem;
+}
+
 void appendItem(char* newName, void (*menuFunction)()){
 	MenuItem *newItem = malloc(sizeof(MenuItem));
 	if(selectedItem != NULL)

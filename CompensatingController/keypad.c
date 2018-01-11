@@ -36,37 +36,37 @@ uint8_t keyScan(){
 	return NOKEY;
 }
 
-uint8_t get8int(char *preamble){
-	char buf = NOKEY;
-	char sbuf[] = {' ', ' ', ' '};
-	int i = 0;
-	lcd_command(_BV(LCD_DISPLAYMODE) | _BV(LCD_DISPLAYMODE_ON) | _BV(LCD_DISPLAYMODE_BLINK));
-	lcd_clrscr();
-	lcd_puts(preamble);
-	while((buf != AKEY) | (i <= 3)){
+uint8_t getInt(char *preamble, int limit){
+	char buf = NOKEY, string[20];
+	int num = 0;
+	while(1){
 		buf = keyScan();
 		if(buf != NOKEY){
 			switch(buf){
 				case AKEY:
 					lcd_clrscr();
-					return atoi(sbuf);
+					return num;
 				case BKEY:
-					break;
 				case CKEY:
-					break;
 				case DKEY:
+				case STARKEY:
+				case HASHKEY:
 					break;
 				default:
-					sbuf[i++] = getKeyChar(buf);
+					num *= 10;
+					num += getKeyInt(buf);
 			}
-			lcd_clrscr();
-			lcd_puts(preamble);
-			for (int j = 0; j < i; j++) lcd_putc(sbuf[j]);
+		}
+		lcd_clrscr();
+		if (num > limit) return limit;
+		lcd_puts(preamble);
+		if (num)
+		{
+			itoa(num, string, 10);
+			lcd_puts(string);
 		}
 		_delay_ms(100);
 	}
-	lcd_clrscr();
-	return atoi(sbuf);
 }
 
 char getKeyChar(uint8_t keyCode){
@@ -121,5 +121,60 @@ char getKeyChar(uint8_t keyCode){
 		break;
 		default:
 		return '$';
+	}
+}
+
+int getKeyInt(uint8_t keyCode){
+	switch(keyCode){
+		case DKEY:
+		return 0;
+		break;
+		case CKEY:
+		return 0;
+		break;
+		case BKEY:
+		return 0;
+		break;
+		case AKEY:
+		return 0;
+		break;
+		case ZEROKEY:
+		return 0;
+		break;
+		case ONEKEY:
+		return 1;
+		break;
+		case TWOKEY:
+		return 2;
+		break;
+		case THREEKEY:
+		return 3;
+		break;
+		case FOURKEY:
+		return 4;
+		break;
+		case FIVEKEY:
+		return 5;
+		break;
+		case SIXKEY:
+		return 6;
+		break;
+		case SEVENKEY:
+		return 7;
+		break;
+		case EIGHTKEY:
+		return 8;
+		break;
+		case NINEKEY:
+		return 9;
+		break;
+		case HASHKEY:
+		return 0;
+		break;
+		case STARKEY:
+		return 0;
+		break;
+		default:
+		return 0;
 	}
 }

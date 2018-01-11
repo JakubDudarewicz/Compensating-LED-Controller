@@ -25,5 +25,6 @@ enum KEYS{ONEKEY, FOURKEY, SEVENKEY, STARKEY,
 
 void keyInit();
 uint8_t keyScan();
-uint8_t get8int(char* preamble);
+uint8_t getInt(char* preamble, int limit);
 char getKeyChar(uint8_t keyCode);
+int getKeyInt(uint8_t keyCode);

@@ -37,4 +37,5 @@ MenuDirection menuDirection;
 void displayMenu();
 void nextMenu();
 void prevMenu();
+void parentMenu();
 void appendItem();
