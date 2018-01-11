@@ -18,6 +18,7 @@
 #include "menu.h"
 #include "i2c.h"
 #include "RTC.h"
+#include "sensor.h"
 
 #define REDPWM OCR2A
 #define GREENPWM OCR2B
