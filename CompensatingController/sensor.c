@@ -35,5 +35,5 @@
 	 }
 	 SENSOR_PORT = 0;
 	 if (i < 2) return SENSOR_OVF;
-	 else return buf / i;
+	 else return accuracy - (buf / i);
  }

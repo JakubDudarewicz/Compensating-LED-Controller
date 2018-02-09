@@ -7,46 +7,25 @@
 
 #define F_CPU 1000000UL
 
-#include <stdlib.h>
-#include <string.h>
-#include <avr/io.h>
-#include <util/delay.h>
-#include "keypad.h"
-#include "hd44780.h"
-#include "hedgehog.h"
-#include "customCharacter.h"
-#include "menu.h"
-#include "i2c.h"
-#include "RTC.h"
-#include "sensor.h"
-
-#define REDPWM OCR2A
-#define GREENPWM OCR2B
-#define BLUEPWM OCR1A
-
-void setRGB();
-void toggleLight();
-void blinkLight();
-void displayTime();
-void displayLight();
-int input(int limit);
+#include "main.h"
 
 int main(void)
 {
 	MCUCR |= _BV(JTD);
 	MCUCR |= _BV(JTD); // disable JTAG to obtain control of PORTC as general I/O
 
-	TCCR1A = _BV(WGM10) | _BV(COM1A1);
-	TCCR1B = _BV(WGM12) | _BV(CS10);
+	TCCR1A = _BV(WGM11) | _BV(COM1A1);
+	TCCR1B = _BV(WGM12) | _BV(WGM13) | _BV(CS10);
+	ICR1 = 0x03FF;
 	TCCR2A = _BV(WGM21) | _BV(WGM20) | _BV(COM2A1) | _BV(COM2B1);
 	TCCR2B = _BV(CS20);
 
-	DDRD |= (_BV(5) | _BV(6) | _BV(7));
+	DDRD = (_BV(5) | _BV(6) | _BV(7));
 
-	REDPWM = 0x80;
-	GREENPWM = 0x50;
-	BLUEPWM = 0x30;
-	
+	REDPWM = 0;
+	GREENPWM = 0;
+	BLUEPWM = 0;
+
 	KEYDDR = 0x00;
 	KEYPORT = 0x00;
 
@@ -54,7 +33,7 @@ int main(void)
 	unsigned char refreshPending = TRUE;
 
 	i2cInit();
-	setTime(0, 0, 0);
+	setTime(12, 0, 0);
 	RTCStart();
 
 	lcd_init();
@@ -68,7 +47,17 @@ int main(void)
 	appendItem("BLINK", &blinkLight);
 	appendItem("TIME", &displayTime);
 	appendItem("SENSOR", &displayLight);
-	while(1){
+	appendItem("GOAL", &goalEdit);
+	appendItem("PID", &PIDedit);
+
+	PIDinit(&rPID, 0.05, 0, 0, 10000, 0);
+	PIDinit(&gPID, 0, 0, 0, 10000, 0);
+	PIDinit(&bPID, 0, 0, 0, 10000, 0);
+
+	while(1)
+	{
+		LEDControl();
+
 		buf = keyScan();
 		if (buf != NOKEY)
 		{
@@ -94,6 +83,17 @@ int main(void)
 			refreshPending = FALSE;
 		}
     }
+}
+
+void LEDControl(){
+	int rbuf, gbuf, bbuf;
+	rbuf = sensorScan(RED, ACCURACY);
+	gbuf = sensorScan(GREEN, ACCURACY);
+	bbuf = sensorScan(BLUE, ACCURACY);
+	
+	limitAdd16bit(&REDPWM, updatePID(&rPID, rgoal, rbuf), 0x03FF);
+	limitAdd8bit(&GREENPWM, updatePID(&gPID, ggoal, gbuf), 0xFF);
+	limitAdd8bit(&BLUEPWM, updatePID(&bPID, bgoal, bbuf), 0xFF);
 }
 
 void setRGB(){
@@ -128,23 +128,215 @@ void displayTime(){
 }
 
 void displayLight(){
-	int cbuf, rbuf, gbuf, bbuf;
-	char string[20];
-	cbuf = sensorScan(CLEAR, 2000);
-	rbuf = sensorScan(RED, 2000);
-	gbuf = sensorScan(GREEN, 2000);
-	bbuf = sensorScan(BLUE, 2000);
-	lcd_clrscr();
-	itoa(cbuf, string, 10);
-	lcd_puts(string);
-	lcd_putc(',');
-	itoa(rbuf, string, 10);
-	lcd_puts(string);
-	lcd_goto_xy(0, 1);
-	itoa(gbuf, string, 10);
-	lcd_puts(string);
-	lcd_putc(',');
-	itoa(bbuf, string, 10);
-	lcd_puts(string);
-	_delay_ms(1000);
+	int i = 0, rbuf, gbuf, bbuf;
+	char string[20], buf;
+	while (1)
+	{
+		buf = keyScan();
+		if (buf != NOKEY)
+		{
+			switch (buf)
+			{
+				case AKEY:
+				return;
+				case ONEKEY:
+				REDPWM += 8;
+				break;
+				case FOURKEY:
+				REDPWM -= 8;
+				break;
+				case TWOKEY:
+				GREENPWM += 8;
+				break;
+				case FIVEKEY:
+				GREENPWM -= 8;
+				break;
+				case THREEKEY:
+				BLUEPWM += 8;
+				break;
+				case SIXKEY:
+				BLUEPWM -= 8;
+				break;
+				case BKEY:
+				REDPWM = 128;
+				GREENPWM = 128;
+				BLUEPWM = 128;
+				break;
+				default:
+				break;
+			}
+		}
+		rbuf = sensorScan(RED, ACCURACY);
+		gbuf = sensorScan(GREEN, ACCURACY);
+		bbuf = sensorScan(BLUE, ACCURACY);
+		lcd_clrscr();
+		itoa(rbuf, string, 10);
+		lcd_puts(string);
+		lcd_putc(' ');
+		itoa(gbuf, string, 10);
+		lcd_puts(string);
+		lcd_putc(' ');
+		itoa(bbuf, string, 10);
+		lcd_puts(string);
+
+		lcd_goto_xy(0,1);
+		itoa(REDPWM, string, 16);
+		lcd_puts(string);
+		lcd_putc(' ');
+		itoa(GREENPWM, string, 16);
+		lcd_puts(string);
+		lcd_putc(' ');
+		itoa(BLUEPWM, string, 16);
+		lcd_puts(string);
+		lcd_puts(" PWM");
+
+		if (i < BUFLENGTH) i++;
+		else i = 0;
+	}
+}
+
+void limitAdd8bit(volatile uint8_t *PWMCHANNEL, int value, int limit){
+	int sum = *PWMCHANNEL + value;
+	if(sum > limit){
+		*PWMCHANNEL = limit;
+		return;
+	}
+	if(sum < 0){
+		*PWMCHANNEL = 0;
+		return;
+	}
+	*PWMCHANNEL = sum;
+}
+
+void limitAdd16bit(volatile uint16_t *PWMCHANNEL, int value, int limit){
+	int sum = *PWMCHANNEL + value;
+	if(sum > limit){
+		*PWMCHANNEL = limit;
+		return;
+	}
+	if(sum < 0){
+		*PWMCHANNEL = 0;
+		return;
+	}
+	*PWMCHANNEL = sum;
+}
+
+void goalEdit(){
+	char string[20], buf;
+	while (1)
+	{
+		LEDControl();
+		buf = keyScan();
+		if (buf != NOKEY)
+		{
+			switch (buf)
+			{
+				case AKEY:
+				return;
+				case ONEKEY:
+				rgoal += 10;
+				break;
+				case FOURKEY:
+				rgoal -= 10;
+				break;
+				case TWOKEY:
+				ggoal += 10;
+				break;
+				case FIVEKEY:
+				ggoal -= 10;
+				break;
+				case THREEKEY:
+				bgoal += 10;
+				break;
+				case SIXKEY:
+				bgoal -= 10;
+				break;
+				default:
+				break;
+			}
+		}
+		lcd_clrscr();
+		itoa(rgoal, string, 10);
+		lcd_puts(string);
+		lcd_putc(' ');
+		itoa(ggoal, string, 10);
+		lcd_puts(string);
+		lcd_putc(' ');
+		itoa(bgoal, string, 10);
+		lcd_puts(string);
+	}
+}
+
+void PIDedit(){
+	char string[20], buf;
+	while (1)
+	{
+		LEDControl();
+		buf = keyScan();
+		if (buf != NOKEY)
+		{
+			switch (buf)
+			{
+				case AKEY:
+				return;
+				case ONEKEY:
+				rPID.pGain += 0.01;
+				break;
+				case FOURKEY:
+				rPID.pGain -= 0.01;
+				break;
+				case TWOKEY:
+				gPID.pGain += 0.01;
+				break;
+				case FIVEKEY:
+				gPID.pGain -= 0.01;
+				break;
+				case THREEKEY:
+				bPID.pGain += 0.01;
+				break;
+				case SIXKEY:
+				bPID.pGain -= 0.01;
+				break;
+				case SEVENKEY:
+				rPID.dGain += 0.01;
+				break;
+				case STARKEY:
+				rPID.dGain -= 0.01;
+				break;
+				case EIGHTKEY:
+				gPID.dGain += 0.01;
+				break;
+				case ZEROKEY:
+				gPID.dGain -= 0.01;
+				break;
+				case NINEKEY:
+				bPID.dGain += 0.01;
+				break;
+				case HASHKEY:
+				bPID.dGain -= 0.01;
+				break;
+				default:
+				break;
+			}
+		}
+		lcd_clrscr();
+		dtostrf(rPID.pGain, 1, 2, string);
+		lcd_puts(string);
+		lcd_putc(' ');
+		dtostrf(bPID.pGain, 1, 2, string);
+		lcd_puts(string);
+		lcd_putc(' ');
+		dtostrf(bPID.pGain, 1, 2, string);
+		lcd_puts(string);
+
+		lcd_goto_xy(0, 1);
+		dtostrf(rPID.dGain, 1, 2, string);
+		lcd_puts(string);
+		lcd_putc(' ');
+		dtostrf(bPID.dGain, 1, 2, string);
+		lcd_puts(string);
+		lcd_putc(' ');
+		dtostrf(bPID.dGain, 1, 2, string);
+		lcd_puts(string);
+	}
 }
