@@ -49,6 +49,8 @@ int main(void)
 	appendItem("SENSOR", &displayLight);
 	appendItem("GOAL", &goalEdit);
 	appendItem("PID", &PIDedit);
+	appendItem("SET NIGHT", &setNightGoal);
+	appendItem("SET DAY", &setDayGoal);
 
 	PIDinit(&rPID, 0.05, 0, 0, 10000, 0);
 	PIDinit(&gPID, 0, 0, 0, 10000, 0);
@@ -100,6 +102,72 @@ void setRGB(){
 	REDPWM = getInt("R:", 255);
 	GREENPWM = getInt("G:", 255);
 	BLUEPWM = getInt("B:", 255);
+}
+
+void setDayGoal(){
+	int temp, i = 0;
+	char string[20], buf;
+	while (1)
+	{
+		buf = keyScan();
+		if (buf != NOKEY)
+		{
+			switch (buf)
+			{
+				case AKEY:
+					drgoal = lookup[i][1];
+					dggoal = lookup[i][2];
+					dbgoal = lookup[i][3];
+					return;
+					break;
+				case ONEKEY:
+					if(i != 9) i++;
+					break;
+				case FOURKEY:
+					if(i != 0) i--;
+					break;
+				default:
+				break;
+			}
+		}
+		lcd_clrscr()
+		itoa(lookup[i][0], string, 10);
+		lcd_puts(string);
+		lcd_puts(" K")
+	}
+}
+
+void setNightGoal(){
+	int temp, i = 0;
+	char string[20], buf;
+	while (1)
+	{
+		buf = keyScan();
+		if (buf != NOKEY)
+		{
+			switch (buf)
+			{
+				case AKEY:
+				nrgoal = lookup[i][1];
+				nggoal = lookup[i][2];
+				nbgoal = lookup[i][3];
+				return;
+				break;
+				case ONEKEY:
+				if(i != 9) i++;
+				break;
+				case FOURKEY:
+				if(i != 0) i--;
+				break;
+				default:
+				break;
+			}
+		}
+		lcd_clrscr()
+		itoa(lookup[i][0], string, 10);
+		lcd_puts(string);
+		lcd_puts(" K")
+	}
 }
 
 void toggleLight(){
