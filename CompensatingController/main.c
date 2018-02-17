@@ -88,14 +88,27 @@ int main(void)
 }
 
 void LEDControl(){
-	int rbuf, gbuf, bbuf;
+	int rbuf, gbuf, bbuf, lr, lg, lb, h;
 	rbuf = sensorScan(RED, ACCURACY);
 	gbuf = sensorScan(GREEN, ACCURACY);
 	bbuf = sensorScan(BLUE, ACCURACY);
 	
-	limitAdd16bit(&REDPWM, updatePID(&rPID, rgoal, rbuf), 0x03FF);
-	limitAdd8bit(&GREENPWM, updatePID(&gPID, ggoal, gbuf), 0xFF);
-	limitAdd8bit(&BLUEPWM, updatePID(&bPID, bgoal, bbuf), 0xFF);
+	h = getTime(HOURS);
+
+	if (h > 20 | h < 7)
+	{
+		lr = nrgoal;
+		lg = nggoal;
+		lb = nbgoal;
+	}else{
+		lr = drgoal;
+		lg = dggoal;
+		lb = dbgoal;
+	}
+	
+	limitAdd16bit(&REDPWM, updatePID(&rPID, lr, rbuf), 0x03FF);
+	limitAdd8bit(&GREENPWM, updatePID(&gPID, lg, gbuf), 0xFF);
+	limitAdd8bit(&BLUEPWM, updatePID(&bPID, lb, bbuf), 0xFF);
 }
 
 void setRGB(){
