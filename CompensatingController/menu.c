@@ -8,6 +8,7 @@
 
 #include "menu.h"
 
+/*
 void displayMenu(){
 	lcd_clrscr();
 	if(((menuDirection == DOWN) & (selectedItem->nextItem != NULL)) |
@@ -32,6 +33,26 @@ void displayMenu(){
 	lcd_putc(UPARROW);
 	lcd_goto_xy(15, 1);
 	lcd_putc(DOWNARROW);
+}
+*/
+
+void displayMenu(){
+	char string[16];
+
+	lcd_clrscr();
+
+	itoa(getTime(HOURS), string, 10);
+	lcd_puts(string);
+	lcd_putc(':');
+	itoa(getTime(MINUTES), string, 10);
+	lcd_puts(string);
+	lcd_putc(':');
+	itoa(getTime(SECONDS), string, 10);
+	lcd_puts(string);
+
+	lcd_goto_xy(0, 1);
+
+	lcd_puts(selectedItem->itemName);
 }
 
 void nextMenu(){

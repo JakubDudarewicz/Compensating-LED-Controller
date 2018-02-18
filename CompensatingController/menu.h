@@ -10,6 +10,7 @@
 #include <string.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#include "RTC.h"
 #include "customCharacter.h"
 
 #define UPARROW 0

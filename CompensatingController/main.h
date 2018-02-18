@@ -26,6 +26,7 @@
 
 #define ACCURACY 1000
 #define BUFLENGTH 20
+#define LOOKUPLENGTH 9
 
 void setRGB();
 void toggleLight();
@@ -40,26 +41,28 @@ void limitAdd8bit(volatile uint8_t *PWMCHANNEL, int value, int limit);
 void limitAdd16bit(volatile uint16_t *PWMCHANNEL, int value, int limit);
 void setNightGoal();
 void setDayGoal();
-/*
-void getGoal(uint8_t *rgoal, uint8_t *ggoal, uint8_t *bgoal, uint32_t time){
-	uint32_t sunrise = 16800, sunset = 77580;
-}
-*/
+void setNightBright();
+void setDayBright();
 
 PID rPID, gPID, bPID;
+float dayBright = 2, nightBright = 1;
 int nrgoal = 510, nggoal = 386, nbgoal = 282;
 int drgoal = 510, dggoal = 494, dbgoal = 476;
 int rgoal = 510, ggoal = 494, bgoal = 476;
-int lookup[][] = {
-	{600, 255, 18, 0},
-	{1000, 255, 68, 0},
-	{2000, 255, 137, 14},
-	{3000, 255, 178, 110},
-	{4000, 255, 206, 167},
-	{5000, 255, 229, 206},
-	{6000, 255, 247, 238},
-	{6500, 255, 255, 255},
-	{7000, 243, 243, 255},
-	{9000, 210, 223, 225}
+int dayLookupRow = 5, nightLookupRow = 7;
+const int lookup[LOOKUPLENGTH + 1][4] = {
+	{6, 255, 18, 0},
+	{10, 255, 68, 0},
+	{20, 255, 137, 14},
+	{30, 255, 178, 110},
+	{40, 255, 206, 167},
+	{50, 255, 229, 206},
+	{60, 255, 247, 238},
+	{65, 255, 255, 255},
+	{70, 243, 243, 255},
+	{90, 210, 223, 225}
 };
+char buf, string[16];
+int h, m, s = 0, sbuf = -1;
+unsigned char refreshPending = TRUE, day = TRUE;
 uint32_t time;

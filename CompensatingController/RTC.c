@@ -61,46 +61,46 @@ uint8_t getTime(UNIT u)
 	switch (u)
 	{
 		case SECONDS:
-		address = RTCSEC;
-		break;
+			address = RTCSEC;
+			break;
 		case MINUTES:
-		address = RTCMIN;
-		break;
+			address = RTCMIN;
+			break;
 		case HOURS:
-		address = RTCHOUR;
+			address = RTCHOUR;
 		break;
-		case WEEKDAY:
-		address = RTCWKDAY;
+			case WEEKDAY:
+			address = RTCWKDAY;
 		break;
-		case MONTH:
-		address = RTCMTH;
+			case MONTH:
+			address = RTCMTH;
 		break;
-		case YEAR:
-		address = RTCYEAR;
+			case YEAR:
+			address = RTCYEAR;
 		break;
-		case LEAP:
-		address = RTCYEAR;
+			case LEAP:
+			address = RTCYEAR;
 		break;
 	}
 	uint8_t *data = getFromAdress(address, 1);
 	switch (u)
 	{
 		case SECONDS:
-		return BCD2BIN(*data & RTCSEC_MASK);
+			return BCD2BIN(*data & RTCSEC_MASK);
 		case MINUTES:
-		return BCD2BIN(*data & RTCMIN_MASK);
+			return BCD2BIN(*data & RTCMIN_MASK);
 		case HOURS:
-		return BCD2BIN(*data & RTCHOUR_MASK);
+			return BCD2BIN(*data & RTCHOUR_MASK);
 		case WEEKDAY:
-		return BCD2BIN(*data & RTCWKDAY_MASK);
+			return BCD2BIN(*data & RTCWKDAY_MASK);
 		case MONTH:
-		return BCD2BIN(*data & RTCMTH_MASK);
+			return BCD2BIN(*data & RTCMTH_MASK);
 		case YEAR:
-		return BCD2BIN(*data);
+			return BCD2BIN(*data);
 		case LEAP:
-		return *data & _BV(RTCMTH_LPYR);
+			return *data & _BV(RTCMTH_LPYR);
 		default:
-		return 0;
+			return 0;
 	}
 }
 
