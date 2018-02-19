@@ -1,10 +1,15 @@
+/*******************************************************
+Title:			Ambient Light Compensating LED Controller
+				menu structure and display
+Filename:		'menu.h'
+Author:			Jakub Dudarewicz
+Version:		0.1
+Created:		12-2017
+Target MCU:		Atmel AVR
 
-/*
- * menu.h
- *
- * Created: 2017-10-16 3:10:40 PM
- *  Author: Jakub Dudarewicz
- */ 
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +40,8 @@ typedef enum MenuDirection{
 MenuItem *selectedItem;
 MenuDirection menuDirection;
 
-void displayMenu();
+void displayMenu2Row();
+void displayMenu1Row();
 void nextMenu();
 void prevMenu();
 void parentMenu();

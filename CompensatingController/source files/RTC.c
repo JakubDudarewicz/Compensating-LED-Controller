@@ -1,9 +1,15 @@
-/*
- * RTC.c
- *
- * Created: 14.12.2017 13:36:35
- *  Author: Jakub Dudarewicz
- */ 
+/*******************************************************
+Title:			MCP7940M RTC module library
+				I2C interface
+Filename:		'RTC.c'
+Author:			Jakub Dudarewicz
+Version:		0.1
+Created:		12-2017
+Target MCU:		Atmel AVR
+
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
 
 #include "i2c.h"
 #include "RTC.h"

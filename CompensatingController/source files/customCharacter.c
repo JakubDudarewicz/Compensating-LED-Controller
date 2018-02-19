@@ -1,9 +1,14 @@
-/*
-* customCharacter.c
-*
-* Created: 2017-10-15 6:39:54 PM
-*  Author: Jakub Dudarewicz
-*/ 
+/*******************************************************
+Title:			HD44780 custom character library
+Filename:		'customCharacter.c'
+Author:			Jakub Dudarewicz
+Version:		0.1
+Created:		12-2017
+Target MCU:		Atmel AVR
+
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
 
 #include "customCharacter.h"
 

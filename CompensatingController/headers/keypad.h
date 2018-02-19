@@ -1,10 +1,14 @@
+/*******************************************************
+Title:			4x4 matrix keypad interface
+Filename:		'keypad.h'
+Author:			Jakub Dudarewicz
+Version:		0.1
+Created:		11-2017
+Target MCU:		Atmel AVR
 
-/*
- * keypad.h
- *
- * Created: 2017-10-16 7:24:17 PM
- *  Author: Jakub Dudarewicz
- */ 
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
 
 #define F_CPU 1000000UL
 

@@ -1,13 +1,38 @@
-/*
- * CompensatingController.c
- *
- * Created: 2017-10-15 11:51:47 AM
- * Author : Jakub Dudarewicz
- */
+/*******************************************************
+Title:			Ambient Light Compensating LED Controller
+Filename:		'main.c'
+Author:			Jakub Dudarewicz
+Created:		02-2018
+Version:		0.1
+Target MCU:		Atmel AVR
 
-#define F_CPU 1000000UL
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
 
 #include "main.h"
+
+PID rPID, gPID, bPID;
+float dayBright = 2.7, nightBright = 1; //brightness gain
+int nrgoal = 510, nggoal = 386, nbgoal = 282; //night goals
+int drgoal = 510, dggoal = 494, dbgoal = 476; //day goals
+int dayLookupRow = 6, nightLookupRow = 3; //current selected CCT
+const int lookup[LOOKUPLENGTH + 1][4] = {
+	{6, 255, 18, 0},
+	{10, 255, 68, 0},
+	{20, 255, 137, 14},
+	{30, 255, 178, 110},
+	{40, 255, 206, 167},
+	{50, 255, 229, 206},
+	{60, 255, 247, 238},
+	{65, 255, 255, 255},
+	{70, 243, 243, 255},
+	{90, 210, 223, 225}
+};
+char buf, string[16];
+int h, m, s = 0, sbuf = -1;
+unsigned char refreshPending = TRUE, day = TRUE;
+uint32_t time;
 
 int main(void)
 {
@@ -46,14 +71,16 @@ int main(void)
 	writeCustom(UPARROW, upArrow);
 	writeCustom(DOWNARROW, downArrow);
 	menuDirection = UP;
+	appendItem("TOGGLE LIGHT", &toggleLight);
+	appendItem("MANUAL RGB", &setRGB);
 	appendItem("SET NIGHT TEMP", &setNightGoal);
 	appendItem("SET DAY TEMP", &setDayGoal);
 	appendItem("SET DAY BRIGHT", &setDayBright);
 	appendItem("SET NIGHT BRIGHT", &setNightBright);
 
-	PIDinit(&rPID, 0.04, 0.004, 0, 10000, 0);
-	PIDinit(&gPID, 0.01, 0.001, 0, 10000, 0);
-	PIDinit(&bPID, 0.01, 0.001, 0, 10000, 0);
+	PIDinit(&rPID, PGAIN * 5, IGAIN * 5, DGAIN * 4, 10000, -10000);
+	PIDinit(&gPID, PGAIN, IGAIN, DGAIN, 10000, -10000);
+	PIDinit(&bPID, PGAIN, IGAIN, DGAIN, 10000, -10000);
 
 	while(1)
 	{
@@ -116,52 +143,39 @@ int main(void)
 }
 
 void LEDControl(){
-	int rbuf, gbuf, bbuf, lr, lg, lb, h;
+	int rbuf, gbuf, bbuf, lr, lg, lb;
 	rbuf = sensorScan(RED, ACCURACY);
 	gbuf = sensorScan(GREEN, ACCURACY);
 	bbuf = sensorScan(BLUE, ACCURACY);
 
-	drgoal = dayBright * lookup[dayLookupRow][1];
-	dggoal = dayBright * lookup[dayLookupRow][2];
-	dbgoal = dayBright * lookup[dayLookupRow][3];
-
-	nrgoal = nightBright * lookup[nightLookupRow][1];
-	nggoal = nightBright * lookup[nightLookupRow][2];
-	nbgoal = nightBright * lookup[nightLookupRow][3];
-
 	if (day)
 	{
-		lr = drgoal;
-		lg = dggoal;
-		lb = dbgoal;
+		lr = dayBright  * lookup[dayLookupRow][1];
+		lg = dayBright  * lookup[dayLookupRow][2];
+		lb = dayBright  * lookup[dayLookupRow][3];
 	}else{
-		lr = nrgoal;
-		lg = nggoal;
-		lb = nbgoal;
+		lr = nightBright * lookup[nightLookupRow][1];
+		lg = nightBright * lookup[nightLookupRow][2];
+		lb = nightBright * lookup[nightLookupRow][3];
 	}
 	
-	limitAdd16bit(&REDPWM,
-				  updatePID(&rPID, lr, rbuf),
-				  0x03FF);
-	limitAdd8bit(&GREENPWM,
-				 updatePID(&gPID, lg, gbuf),
-				 0xFF);
-	limitAdd8bit(&BLUEPWM,
-				 updatePID(&bPID, lb, bbuf),
-				 0xFF);
+	limitAdd16bit(&REDPWM, updatePID(&rPID, lr, rbuf), 0x03FF);
+	limitAdd8bit(&GREENPWM, updatePID(&gPID, lg, gbuf), 0xFF);
+	limitAdd8bit(&BLUEPWM, updatePID(&bPID, lb, bbuf), 0xFF);
 }
 
 void setRGB(){
 	REDPWM = getInt("R:", 255);
-	GREENPWM = getInt("G:", 255);
-	BLUEPWM = getInt("B:", 255);
+	REDPWM *= 4; //10-bit
+	GREENPWM = getInt("G:", 255); //8-bit
+	BLUEPWM = getInt("B:", 255); //8-bit
 	lcd_clrscr();
-	lcd_puts("PRESS A");
+	lcd_puts("C to quit");
 	refreshPending = TRUE;
 	while (1)
 	{
 		buf = keyScan();
-		if(buf == AKEY) break;
+		if(buf == CKEY) break;
 	}
 }
 
@@ -239,7 +253,6 @@ void setDayBright(){
 
 void setDayGoal(){
 	dayLookupRow = 7;
-	uint32_t temp = lookup[7][0];
 	char string[20], buf, refreshPending = TRUE;
 	while (1)
 	{
@@ -278,7 +291,6 @@ void setDayGoal(){
 
 void setNightGoal(){
 	nightLookupRow = 5;
-	uint32_t temp = lookup[5][0];
 	char string[20], buf, refreshPending = TRUE;
 	while (1)
 	{
@@ -319,95 +331,6 @@ void toggleLight(){
 	DDRD ^= _BV(7) | _BV(6) | _BV(5);
 }
 
-void blinkLight(){
-	for (int i = 0; i < 10; i++){
-		DDRD ^= _BV(7) | _BV(6) | _BV(5);
-		_delay_ms(200);
-	}
-}
-
-void displayTime(){
-	char string[20];
-	lcd_clrscr();
-	itoa(getTime(HOURS), string, 10);
-	lcd_puts(string);
-	lcd_putc(':');
-	itoa(getTime(MINUTES), string, 10);
-	lcd_puts(string);
-	lcd_putc(':');
-	itoa(getTime(SECONDS), string, 10);
-	lcd_puts(string);
-	_delay_ms(2000);
-}
-
-void displayLight(){
-	int i = 0, rbuf, gbuf, bbuf;
-	char string[20], buf;
-	while (1)
-	{
-		buf = keyScan();
-		if (buf != NOKEY)
-		{
-			switch (buf)
-			{
-				case AKEY:
-				return;
-				case ONEKEY:
-				REDPWM += 8;
-				break;
-				case FOURKEY:
-				REDPWM -= 8;
-				break;
-				case TWOKEY:
-				GREENPWM += 8;
-				break;
-				case FIVEKEY:
-				GREENPWM -= 8;
-				break;
-				case THREEKEY:
-				BLUEPWM += 8;
-				break;
-				case SIXKEY:
-				BLUEPWM -= 8;
-				break;
-				case BKEY:
-				REDPWM = 128;
-				GREENPWM = 128;
-				BLUEPWM = 128;
-				break;
-				default:
-				break;
-			}
-		}
-		rbuf = sensorScan(RED, ACCURACY);
-		gbuf = sensorScan(GREEN, ACCURACY);
-		bbuf = sensorScan(BLUE, ACCURACY);
-		lcd_clrscr();
-		itoa(rbuf, string, 10);
-		lcd_puts(string);
-		lcd_putc(' ');
-		itoa(gbuf, string, 10);
-		lcd_puts(string);
-		lcd_putc(' ');
-		itoa(bbuf, string, 10);
-		lcd_puts(string);
-
-		lcd_goto_xy(0,1);
-		itoa(REDPWM, string, 16);
-		lcd_puts(string);
-		lcd_putc(' ');
-		itoa(GREENPWM, string, 16);
-		lcd_puts(string);
-		lcd_putc(' ');
-		itoa(BLUEPWM, string, 16);
-		lcd_puts(string);
-		lcd_puts(" PWM");
-
-		if (i < BUFLENGTH) i++;
-		else i = 0;
-	}
-}
-
 void limitAdd8bit(volatile uint8_t *PWMCHANNEL,
 				  int value,
 				  int limit){
@@ -436,124 +359,4 @@ void limitAdd16bit(volatile uint16_t *PWMCHANNEL,
 		return;
 	}
 	*PWMCHANNEL = sum;
-}
-
-void goalEdit(){
-	char string[20], buf;
-	while (1)
-	{
-		LEDControl();
-		buf = keyScan();
-		if (buf != NOKEY)
-		{
-			switch (buf)
-			{
-				case AKEY:
-				return;
-				case ONEKEY:
-				rgoal += 10;
-				break;
-				case FOURKEY:
-				rgoal -= 10;
-				break;
-				case TWOKEY:
-				ggoal += 10;
-				break;
-				case FIVEKEY:
-				ggoal -= 10;
-				break;
-				case THREEKEY:
-				bgoal += 10;
-				break;
-				case SIXKEY:
-				bgoal -= 10;
-				break;
-				default:
-				break;
-			}
-		}
-		lcd_clrscr();
-		itoa(rgoal, string, 10);
-		lcd_puts(string);
-		lcd_putc(' ');
-		itoa(ggoal, string, 10);
-		lcd_puts(string);
-		lcd_putc(' ');
-		itoa(bgoal, string, 10);
-		lcd_puts(string);
-	}
-}
-
-void PIDedit(){
-	char string[20], buf;
-	while (1)
-	{
-		LEDControl();
-		buf = keyScan();
-		if (buf != NOKEY)
-		{
-			switch (buf)
-			{
-				case AKEY:
-				return;
-				case ONEKEY:
-				rPID.pGain += 0.01;
-				break;
-				case FOURKEY:
-				rPID.pGain -= 0.01;
-				break;
-				case TWOKEY:
-				gPID.pGain += 0.01;
-				break;
-				case FIVEKEY:
-				gPID.pGain -= 0.01;
-				break;
-				case THREEKEY:
-				bPID.pGain += 0.01;
-				break;
-				case SIXKEY:
-				bPID.pGain -= 0.01;
-				break;
-				case SEVENKEY:
-				rPID.dGain += 0.01;
-				break;
-				case STARKEY:
-				rPID.dGain -= 0.01;
-				break;
-				case EIGHTKEY:
-				gPID.dGain += 0.01;
-				break;
-				case ZEROKEY:
-				gPID.dGain -= 0.01;
-				break;
-				case NINEKEY:
-				bPID.dGain += 0.01;
-				break;
-				case HASHKEY:
-				bPID.dGain -= 0.01;
-				break;
-				default:
-				break;
-			}
-		}
-		lcd_clrscr();
-		dtostrf(rPID.pGain, 1, 2, string);
-		lcd_puts(string);
-		lcd_putc(' ');
-		dtostrf(bPID.pGain, 1, 2, string);
-		lcd_puts(string);
-		lcd_putc(' ');
-		dtostrf(bPID.pGain, 1, 2, string);
-		lcd_puts(string);
-
-		lcd_goto_xy(0, 1);
-		dtostrf(rPID.dGain, 1, 2, string);
-		lcd_puts(string);
-		lcd_putc(' ');
-		dtostrf(bPID.dGain, 1, 2, string);
-		lcd_puts(string);
-		lcd_putc(' ');
-		dtostrf(bPID.dGain, 1, 2, string);
-		lcd_puts(string);
-	}
 }

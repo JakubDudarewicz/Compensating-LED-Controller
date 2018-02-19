@@ -1,15 +1,19 @@
+/*******************************************************
+Title:			Ambient Light Compensating LED Controller
+				menu structure and display
+Filename:		'menu.c'
+Author:			Jakub Dudarewicz
+Version:		0.1
+Created:		12-2017
+Target MCU:		Atmel AVR
 
-/*
- * menu.c
- *
- * Created: 2017-10-16 3:10:18 PM
- *  Author: Jakub Dudarewicz
- */ 
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
 
 #include "menu.h"
 
-/*
-void displayMenu(){
+void displayMenu2Row(){
 	lcd_clrscr();
 	if(((menuDirection == DOWN) & (selectedItem->nextItem != NULL)) |
 	   ((menuDirection == UP) & (selectedItem->prevItem == NULL)))
@@ -34,9 +38,8 @@ void displayMenu(){
 	lcd_goto_xy(15, 1);
 	lcd_putc(DOWNARROW);
 }
-*/
 
-void displayMenu(){
+void displayMenu1Row(){
 	char string[16];
 
 	lcd_clrscr();

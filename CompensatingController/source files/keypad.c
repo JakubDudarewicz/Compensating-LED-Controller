@@ -1,10 +1,14 @@
+/*******************************************************
+Title:			4x4 matrix keypad interface
+Filename:		'keypad.c'
+Author:			Jakub Dudarewicz
+Version:		0.1
+Created:		11-2017
+Target MCU:		Atmel AVR
 
-/*
- * keypad.c
- *
- * Created: 2017-10-16 7:24:27 PM
- *  Author: Jakub Dudarewicz
- */
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
   
 #include "keypad.h"
 
@@ -43,11 +47,11 @@ uint8_t getInt(char *preamble, int limit){
 		buf = keyScan();
 		if(buf != NOKEY){
 			switch(buf){
-				case AKEY:
+				case CKEY:
 					lcd_clrscr();
 					return num;
 				case BKEY:
-				case CKEY:
+				case AKEY:
 				case DKEY:
 				case STARKEY:
 				case HASHKEY:
@@ -65,6 +69,8 @@ uint8_t getInt(char *preamble, int limit){
 			itoa(num, string, 10);
 			lcd_puts(string);
 		}
+		lcd_goto_xy(0, 1);
+		lcd_puts("C to confirm");
 		_delay_ms(100);
 	}
 }

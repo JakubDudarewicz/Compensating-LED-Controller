@@ -1,9 +1,14 @@
-/*
- * PID.c
- *
- * Created: 2018-01-22 2:04:39 PM
- *  Author: Jakub Dudarewicz
- */ 
+/*******************************************************
+Title:			PID control implementation
+Filename:		'PID.c'
+Author:			Jakub Dudarewicz
+Version:		0.1
+Created:		01-2018
+Target MCU:		Atmel AVR
+
+This code is distributed under the GNU Public License
+which can be found at http://www.gnu.org/licenses/gpl.txt
+*******************************************************/
 
 #include "PID.h"
 
@@ -30,6 +35,6 @@ void PIDinit(PID *pid, real_t pGain, real_t iGain, real_t dGain, real_t iMax, re
 	pid->dGain = dGain;
 	pid->iMax = iMax;
 	pid->iMin = iMin;
-	pid->iState = iMin + ((iMax - iMin) / 2);
+	pid->iState = iMin + ((iMax - iMin) / 2); //integration windup cancelling
 	pid->dState = 0;
 }
