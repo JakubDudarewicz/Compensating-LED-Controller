@@ -38,7 +38,7 @@ int main(void)
 {
 	MCUCR |= _BV(JTD);
 	MCUCR |= _BV(JTD);
-	// disable JTAG to obtain control of PORTC as general I/O
+	//disable JTAG to obtain control of PORTC as general I/O
 
 	TCCR1A = _BV(WGM11)
 	       | _BV(COM1A1);
@@ -51,8 +51,14 @@ int main(void)
 		   | _BV(COM2A1)
 		   | _BV(COM2B1);
 	TCCR2B = _BV(CS20);
+	//timer1: 10-bit fast PWM
+	//timer2: 8-bit fast PWM
 
 	DDRD = (_BV(5) | _BV(6) | _BV(7));
+	//PWM outputs
+	//PD5 - OCR1A, RED
+	//PD6 - OCR2B, GREEN
+	//PD7 - OCR1A, BLUE
 
 	REDPWM = 0;
 	GREENPWM = 0;
@@ -70,6 +76,7 @@ int main(void)
 
 	writeCustom(UPARROW, upArrow);
 	writeCustom(DOWNARROW, downArrow);
+	//custom lcd characters
 	menuDirection = UP;
 	appendItem("TOGGLE LIGHT", &toggleLight);
 	appendItem("MANUAL RGB", &setRGB);
@@ -77,10 +84,14 @@ int main(void)
 	appendItem("SET DAY TEMP", &setDayGoal);
 	appendItem("SET DAY BRIGHT", &setDayBright);
 	appendItem("SET NIGHT BRIGHT", &setNightBright);
+	//menu list initialisation
 
 	PIDinit(&rPID, PGAIN * 5, IGAIN * 5, DGAIN * 4, 10000, -10000);
 	PIDinit(&gPID, PGAIN, IGAIN, DGAIN, 10000, -10000);
 	PIDinit(&bPID, PGAIN, IGAIN, DGAIN, 10000, -10000);
+	//PID control initialization, red channel gains are scaled upwards
+	//this is because red channel works in 10-bit mode
+	//added responsiveness helps with achieving warm colors faster
 
 	while(1)
 	{
@@ -94,7 +105,9 @@ int main(void)
 		if((h < 18) && (h > 6)) day = TRUE;
 		
 		LEDControl();
+		//light sensing, goal setting, PID control
 
+		//keyborad input
 		buf = keyScan();
 		if (buf != NOKEY)
 		{
@@ -125,6 +138,7 @@ int main(void)
 			lcd_putc(':');
 			itoa(s, string, 10);
 			lcd_puts(string);
+			//time
 
 			lcd_goto_xy(12, 0);
 			if (day)
@@ -133,11 +147,13 @@ int main(void)
 			}else{
 				lcd_puts(" NIGHT");
 			}
+			//time of day
 
 			lcd_goto_xy(0, 1);
 
 			lcd_puts(selectedItem->itemName);
 			refreshPending = FALSE;
+			//selected menu item description
 		}
     }
 }
@@ -147,6 +163,7 @@ void LEDControl(){
 	rbuf = sensorScan(RED, ACCURACY);
 	gbuf = sensorScan(GREEN, ACCURACY);
 	bbuf = sensorScan(BLUE, ACCURACY);
+	//light sensing
 
 	if (day)
 	{
@@ -158,10 +175,12 @@ void LEDControl(){
 		lg = nightBright * lookup[nightLookupRow][2];
 		lb = nightBright * lookup[nightLookupRow][3];
 	}
+	//setting goals for PID control
 	
 	limitAdd16bit(&REDPWM, updatePID(&rPID, lr, rbuf), 0x03FF);
 	limitAdd8bit(&GREENPWM, updatePID(&gPID, lg, gbuf), 0xFF);
 	limitAdd8bit(&BLUEPWM, updatePID(&bPID, lb, bbuf), 0xFF);
+	//PID control and output to PWM channels
 }
 
 void setRGB(){

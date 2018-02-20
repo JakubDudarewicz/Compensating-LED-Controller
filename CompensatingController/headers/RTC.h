@@ -17,10 +17,11 @@ which can be found at http://www.gnu.org/licenses/gpl.txt
 #define TRUE			1
 #define FALSE			0
 
-#define LOCAL_ADDR		0xA0
-#define RTC_ADDRESS		0xDE
+#define LOCAL_ADDR		0xA0	//AVR device address
+#define RTC_ADDRESS		0xDE	//RTC device address
 #define BUFFER_SIZE		20
 
+//RTC address definitions
 #define RTCSEC			0x00
 #define RTCMIN			0x01
 #define	RTCHOUR			0x02
@@ -43,6 +44,7 @@ which can be found at http://www.gnu.org/licenses/gpl.txt
 #define ALM1DATE		0x15
 #define	ALM1MTH			0x16
 
+//RTC control bits
 #define	RTCSEC_ST			7
 #define RTCHOUR_FORMAT		6
 #define RTCHOUR_AMPM		5
@@ -59,6 +61,7 @@ which can be found at http://www.gnu.org/licenses/gpl.txt
 #define CONTROL_SQWFS0		0
 #define	OSCTRIM_SIGN		7
 
+//RTC data masks
 #define	RTCSEC_MASK		0x7F
 #define	RTCMIN_MASK		0x7F
 #define	RTCHOUR_MASK	0x3F
@@ -67,6 +70,7 @@ which can be found at http://www.gnu.org/licenses/gpl.txt
 #define	RTCMTH_MASK		0x1F
 #define	TRIMVAL_MASK	0x7F
 
+//BinaryCodedDecimal <-> natural Binary conversions
 #define BCD2BIN(bcd)	(bcd & 0x0F) + (((bcd & 0xF0) / 16) * 10)
 #define	BIN2BCD(bin)	((bin / 10) * 16) | (bin % 10)
 

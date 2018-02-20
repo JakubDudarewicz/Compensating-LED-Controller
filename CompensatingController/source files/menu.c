@@ -14,6 +14,8 @@ which can be found at http://www.gnu.org/licenses/gpl.txt
 #include "menu.h"
 
 void displayMenu2Row(){
+	//display two rows of list, with respect to scrolling direction
+	//scrolling direction = last move (up or down)
 	lcd_clrscr();
 	if(((menuDirection == DOWN) & (selectedItem->nextItem != NULL)) |
 	   ((menuDirection == UP) & (selectedItem->prevItem == NULL)))
@@ -34,9 +36,9 @@ void displayMenu2Row(){
 		lcd_puts(selectedItem->itemName);
 	}
 	lcd_goto_xy(15, 0);
-	lcd_putc(UPARROW);
+	lcd_putc(UPARROW); //custom character no
 	lcd_goto_xy(15, 1);
-	lcd_putc(DOWNARROW);
+	lcd_putc(DOWNARROW); //custom character no
 }
 
 void displayMenu1Row(){
@@ -52,10 +54,12 @@ void displayMenu1Row(){
 	lcd_putc(':');
 	itoa(getTime(SECONDS), string, 10);
 	lcd_puts(string);
+	//display time
 
 	lcd_goto_xy(0, 1);
 
 	lcd_puts(selectedItem->itemName);
+	//display item description
 }
 
 void nextMenu(){
@@ -80,9 +84,12 @@ void appendItem(char* newName, void (*menuFunction)()){
 	else
 	{
 		newItem->prevItem = NULL;
+		//list termination at the beggining
 	}
 	newItem->nextItem = NULL;
+	//list termination at the end
 	selectedItem = newItem;
 	strcpy(selectedItem->itemName, newName);
 	selectedItem->menuPressed = menuFunction;
+	//pointer to function that stores menu functionality
 }

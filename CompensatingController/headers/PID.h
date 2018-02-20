@@ -20,6 +20,7 @@ typedef struct{
 	real_t iState, dState;
 	real_t iMax, iMin;
 }PID;
+//PID controller settings and memory
 
 void PIDinit(PID *pid,
 			 real_t pGain,

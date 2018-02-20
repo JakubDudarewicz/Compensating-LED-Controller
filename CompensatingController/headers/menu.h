@@ -24,20 +24,21 @@ which can be found at http://www.gnu.org/licenses/gpl.txt
 #define TRUE 1
 #define FALSE 0
 
+//item of a linked list
 typedef struct MenuItem{
 	struct MenuItem *parentItem;
 	struct MenuItem *prevItem;
 	struct MenuItem *nextItem;
 	char itemName[15];
-	void (*menuDisplay)();
 	void (*menuPressed)();
 }MenuItem;
 
+//menu scrolling direction
 typedef enum MenuDirection{
 	UP, DOWN
 }MenuDirection;
 
-MenuItem *selectedItem;
+MenuItem *selectedItem; //currently active item
 MenuDirection menuDirection;
 
 void displayMenu2Row();

@@ -24,14 +24,15 @@ uint8_t keyScan(){
 		KEYDDR = _BV(i);
 		KEYPORT = _BV(i);
 		__asm("nop");
+		//wait one cycle for state of pin to settle, mandatory
 		for (j = 0; j < 4; j++)
 		{
 			if (KEYPIN & _BV(j + 4)){
-				_delay_ms(50);
-				while(KEYPIN & _BV(j + 4)){}
+				_delay_ms(50); //debouncing
+				while(KEYPIN & _BV(j + 4)){} //wait for release
 				KEYPORT = 0x00;
-				KEYDDR = 0x00;
-				return (i * 4) + j;
+				KEYDDR = 0x00; //tristate all keyboard pins
+				return (i * 4) + j; //return key identifier
 			}
 		}
 	}
@@ -41,6 +42,7 @@ uint8_t keyScan(){
 }
 
 uint8_t getInt(char *preamble, int limit){
+	//8-bit int input, preamble used to prompt user
 	char buf = NOKEY, string[20];
 	int num = 0;
 	while(1){
@@ -76,6 +78,7 @@ uint8_t getInt(char *preamble, int limit){
 }
 
 char getKeyChar(uint8_t keyCode){
+	//key identifier to key character conversion
 	switch(keyCode){
 		case DKEY:
 		return 'D';
@@ -131,6 +134,7 @@ char getKeyChar(uint8_t keyCode){
 }
 
 int getKeyInt(uint8_t keyCode){
+	//key identifier to integer conversion
 	switch(keyCode){
 		case DKEY:
 		return 0;

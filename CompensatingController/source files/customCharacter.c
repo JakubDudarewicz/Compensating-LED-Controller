@@ -13,6 +13,7 @@ which can be found at http://www.gnu.org/licenses/gpl.txt
 #include "customCharacter.h"
 
 uint8_t characters[8][8];
+//eight custom characters used to display any graphic
 
 uint8_t downArrow[8] = {
 	0b00000, 0b00000, 0b11111, 0b01110,
@@ -43,14 +44,18 @@ uint8_t jez[8][8] = {
 	{0b10000, 0b11100, 0b11000, 0b11100,
 	 0b10101, 0b11111, 0b01000, 0b01100}
 };
+//hedgehog sprite
 
 uint8_t temp[8];
 
 void writeCustom(uint8_t characterID, uint8_t* lines){
 	lcd_command(_BV(LCD_CGRAM)+characterID*8);
+	//lcd accept characters as custom character lines
+	//8 characters make up 8 lines of a custom character
 	for(int i = 0; i < 8; i++)
 	{
 		lcd_putc(lines[i]);
+		//write lines to LCD memory
 	}
 	lcd_goto(0);
 }
@@ -60,6 +65,7 @@ void putPixel(uint8_t x, uint8_t y){
 }
 
 void writeCharacters(){
+	//write pixels to custom characters
 	for (int i = 0; i < 8; i++){
 		for (int j = 0; j < 8; j++)
 		{

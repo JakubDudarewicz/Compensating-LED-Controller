@@ -10,12 +10,12 @@ This code is distributed under the GNU Public License
 which can be found at http://www.gnu.org/licenses/gpl.txt
 *******************************************************/
 
-#define F_CPU 1000000UL
+#define F_CPU		1000000UL
 
-#define KEYPORT PORTB
-#define KEYDDR DDRB
-#define KEYPIN PINB
-#define NOKEY 0xFF
+#define KEYPORT		PORTB
+#define KEYDDR		DDRB
+#define KEYPIN		PINB
+#define NOKEY		0xFF
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -26,6 +26,7 @@ enum KEYS{ONEKEY, FOURKEY, SEVENKEY, STARKEY,
 		  TWOKEY, FIVEKEY, EIGHTKEY, ZEROKEY,
 		  THREEKEY, SIXKEY, NINEKEY, HASHKEY,
 		  AKEY, BKEY, CKEY, DKEY};
+		  //key identifiers
 
 void keyInit();
 uint8_t keyScan();

@@ -114,8 +114,3 @@ void RTCConfigure(uint8_t settingByte)
 {
 	sendToAdress(CONTROL, settingByte);
 }
-
-void set24HFormat()
-{
-	
-}
